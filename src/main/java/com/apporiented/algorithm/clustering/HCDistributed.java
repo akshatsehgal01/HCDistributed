@@ -93,6 +93,7 @@ public class HCDistributed {
 				}
 				coords.add(new Coord(x));
 			}
+			/*
 			JFrame frame = new JFrame();
 			frame.setSize(400, 300);
 			frame.setLocation(400, 300);
@@ -110,14 +111,15 @@ public class HCDistributed {
 			dp.setScaleValueDecimals(0);
 			dp.setScaleValueInterval(1);
 			dp.setShowDistances(false);
+			*/
 			try {
 				Cluster cluster = runClusterer(coords);
-				dp.setModel(cluster);
-				cluster.toConsole(0);
+				//dp.setModel(cluster);
+				//cluster.toConsole(0);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			frame.setVisible(true);
+			//frame.setVisible(true);
 			// data.set(s);
 			// context.write(key, data);
 		}
