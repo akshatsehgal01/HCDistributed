@@ -19,193 +19,170 @@ package com.apporiented.algorithm.clustering;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Cluster
-{
+public class Cluster {
 
-    private String name;
+	private String name;
 
-    private Cluster parent;
+	private Cluster parent;
 
-    private List<Cluster> children;
+	private List<Cluster> children;
 
-    private List<String> leafNames;
+	private List<String> leafNames;
 
-    private Distance distance = new Distance();
+	private Distance distance = new Distance();
 
+	public Cluster(String name) {
+		this.name = name;
+		leafNames = new ArrayList<String>();
+	}
 
-    public Cluster(String name)
-    {
-        this.name = name;
-        leafNames = new ArrayList<String>();
-    }
+	public Distance getDistance() {
+		return distance;
+	}
 
-    public Distance getDistance()
-    {
-        return distance;
-    }
+	public Double getWeightValue() {
+		return distance.getWeight();
+	}
 
-    public Double getWeightValue()
-    {
-        return distance.getWeight();
-    }
+	public Double getDistanceValue() {
+		return distance.getDistance();
+	}
 
-    public Double getDistanceValue()
-    {
-        return distance.getDistance();
-    }
+	public void setDistance(Distance distance) {
+		this.distance = distance;
+	}
 
-    public void setDistance(Distance distance)
-    {
-        this.distance = distance;
-    }
+	public List<Cluster> getChildren() {
+		if (children == null) {
+			children = new ArrayList<Cluster>();
+		}
 
-    public List<Cluster> getChildren()
-    {
-        if (children == null)
-        {
-            children = new ArrayList<Cluster>();
-        }
+		return children;
+	}
 
-        return children;
-    }
+	public void addLeafName(String lname) {
+		leafNames.add(lname);
+	}
 
-    public void addLeafName(String lname)
-    {
-        leafNames.add(lname);
-    }
+	public void appendLeafNames(List<String> lnames) {
+		leafNames.addAll(lnames);
+	}
 
-    public void appendLeafNames(List<String> lnames)
-    {
-        leafNames.addAll(lnames);
-    }
+	public List<String> getLeafNames() {
+		return leafNames;
+	}
 
-    public List<String> getLeafNames()
-    {
-        return leafNames;
-    }
+	public void setChildren(List<Cluster> children) {
+		this.children = children;
+	}
 
-    public void setChildren(List<Cluster> children)
-    {
-        this.children = children;
-    }
+	public Cluster getParent() {
+		return parent;
+	}
 
-    public Cluster getParent()
-    {
-        return parent;
-    }
+	public void setParent(Cluster parent) {
+		this.parent = parent;
+	}
 
-    public void setParent(Cluster parent)
-    {
-        this.parent = parent;
-    }
+	public String getName() {
+		return name;
+	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getName()
-    {
-        return name;
-    }
+	public void addChild(Cluster cluster) {
+		getChildren().add(cluster);
 
-    public void setName(String name)
-    {
-        this.name = name;
-    }
+	}
 
-    public void addChild(Cluster cluster)
-    {
-        getChildren().add(cluster);
+	public boolean contains(Cluster cluster) {
+		return getChildren().contains(cluster);
+	}
 
-    }
+	@Override
+	public String toString() {
+		return "Cluster " + name;
+	}
 
-    public boolean contains(Cluster cluster)
-    {
-        return getChildren().contains(cluster);
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Cluster other = (Cluster) obj;
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		return true;
+	}
 
-    @Override
-    public String toString()
-    {
-        return "Cluster " + name;
-    }
+	@Override
+	public int hashCode() {
+		return (name == null) ? 0 : name.hashCode();
+	}
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj)
-        {
-            return true;
-        }
-        if (obj == null)
-        {
-            return false;
-        }
-        if (getClass() != obj.getClass())
-        {
-            return false;
-        }
-        Cluster other = (Cluster) obj;
-        if (name == null)
-        {
-            if (other.name != null)
-            {
-                return false;
-            }
-        } else if (!name.equals(other.name))
-        {
-            return false;
-        }
-        return true;
-    }
+	public boolean isLeaf() {
+		return getChildren().size() == 0;
+	}
 
-    @Override
-    public int hashCode()
-    {
-        return (name == null) ? 0 : name.hashCode();
-    }
+	public int countLeafs() {
+		return countLeafs(this, 0);
+	}
 
-    public boolean isLeaf()
-    {
-        return getChildren().size() == 0;
-    }
+	public int countLeafs(Cluster node, int count) {
+		if (node.isLeaf())
+			count++;
+		for (Cluster child : node.getChildren()) {
+			count += child.countLeafs();
+		}
+		return count;
+	}
 
-    public int countLeafs()
-    {
-        return countLeafs(this, 0);
-    }
+	public void toConsole(int indent) {
+		for (int i = 0; i < indent; i++) {
+			System.out.print("  ");
 
-    public int countLeafs(Cluster node, int count)
-    {
-        if (node.isLeaf()) count++;
-        for (Cluster child : node.getChildren())
-        {
-            count += child.countLeafs();
-        }
-        return count;
-    }
+		}
+		String name = getName() + (isLeaf() ? " (leaf)" : "") + (distance != null ? "  distance: " + distance : "");
+		System.out.println(name);
+		for (Cluster child : getChildren()) {
+			child.toConsole(indent + 1);
+		}
+	}
 
-    public void toConsole(int indent)
-    {
-        for (int i = 0; i < indent; i++)
-        {
-            System.out.print("  ");
+	public double getTotalDistance() {
+		Double dist = getDistance() == null ? 0 : getDistance().getDistance();
+		if (getChildren().size() > 0) {
+			dist += children.get(0).getTotalDistance();
+		}
+		return dist;
 
-        }
-        String name = getName() + (isLeaf() ? " (leaf)" : "") + (distance != null ? "  distance: " + distance : "");
-        System.out.println(name);
-        for (Cluster child : getChildren())
-        {
-            child.toConsole(indent + 1);
-        }
-    }
+	}
 
-    public double getTotalDistance()
-    {
-        Double dist = getDistance() == null ? 0 : getDistance().getDistance();
-        if (getChildren().size() > 0)
-        {
-            dist += children.get(0).getTotalDistance();
-        }
-        return dist;
-
-    }
+	public String toNewick() {
+		if (!getChildren().isEmpty()) {
+			String output = "";
+			output += "(";
+			output += getChildren().get(0).toNewick();
+			output += ",";
+			output += getChildren().get(1).toNewick();
+			output += ")";
+			return output;
+		} else {
+			return getName();
+		}
+	}
 
 }

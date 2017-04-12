@@ -82,46 +82,24 @@ public class HCDistributed {
 			List<Coord> coords = new ArrayList<Coord>();
 			Iterator<Text> iter = values.iterator();
 			while (iter.hasNext()) {
-				String[] elems = iter.next().toString().split(",");
+				String[] elems = iter.next().toString().trim().split(",");
 				double[] x = new double[elems.length];
 				try {
 					for (int i = 0; i < x.length; i++) {
-						x[i] = Integer.parseInt(elems[i]);
+						x[i] = Double.parseDouble(elems[i]);
 					}
 				} catch (Exception e) {
 					continue;
 				}
 				coords.add(new Coord(x));
 			}
-			/*
-			JFrame frame = new JFrame();
-			frame.setSize(400, 300);
-			frame.setLocation(400, 300);
-			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-			JPanel content = new JPanel();
-			DendrogramPanel dp = new DendrogramPanel();
-
-			frame.setContentPane(content);
-			content.setBackground(Color.red);
-			content.setLayout(new BorderLayout());
-			content.add(dp, BorderLayout.CENTER);
-			dp.setBackground(Color.WHITE);
-			dp.setLineColor(Color.BLACK);
-			dp.setScaleValueDecimals(0);
-			dp.setScaleValueInterval(1);
-			dp.setShowDistances(false);
-			*/
 			try {
 				Cluster cluster = runClusterer(coords);
-				//dp.setModel(cluster);
-				//cluster.toConsole(0);
+				data.set(cluster.toNewick()+";");
+				context.write(key, data);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			//frame.setVisible(true);
-			// data.set(s);
-			// context.write(key, data);
 		}
 	}
 
