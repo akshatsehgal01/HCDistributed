@@ -160,8 +160,12 @@ public class Cluster {
 			String output = "";
 			output += "(";
 			output += getChildren().get(0).toNewick();
+			output += ":";
+			output += String.format("%.1f", getChildren().get(0).getDistanceValue());
 			output += ",";
 			output += getChildren().get(1).toNewick();
+			output += ":";
+			output += String.format("%.1f", getChildren().get(1).getDistanceValue());
 			output += ")";
 			return output;
 		} else {

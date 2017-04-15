@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Reducer.Context;
-
 public class HierarchicalClusterer {
 	private static List<String> datarows = new ArrayList<String>();
 
@@ -53,10 +50,10 @@ public class HierarchicalClusterer {
 				Coord coord2 = coords.get(col);
 				double diff_square_sum = 0.0;
 				for (int i = 0; i < coord2.x.length; i++) {
-					diff_square_sum += Math.sqrt(Math.pow(coord2.x[i] - coord1.x[i], 2));
+					diff_square_sum += Math.pow(coord2.x[i] - coord1.x[i], 2);
 				}
-				distances[row][col] = diff_square_sum;
-				distances[col][row] = diff_square_sum;
+				distances[row][col] = Math.sqrt(diff_square_sum);
+				distances[col][row] = Math.sqrt(diff_square_sum);
 				System.out.println(diff_square_sum);
 			}
 			names[row] = "" + row;
