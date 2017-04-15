@@ -1,12 +1,6 @@
 package com.apporiented.algorithm.clustering;
 
 import java.util.*;
-
-/**
- * Container for linkages
- * with the minimal methods needed in the package
- * Created by Alexandre Masselot on 7/18/14.
- */
 public class DistanceMap {
 
     private Map<String, Item> pairHash;
