@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="TrainingData"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/home/akshat/Documents/DistributedComputing/hadoop-2.7.2/share/hadoop/yarn/lib/netty-3.6.2.Final.jar"/>
 	<classpathentry kind="lib" path="/home/akshat/Documents/DistributedComputing/hadoop-2.7.2/share/hadoop/yarn/lib/commons-io-2.4.jar"/>
@@ -174,5 +175,6 @@
 	<classpathentry kind="lib" path="/home/akshat/Documents/DistributedComputing/hadoop-2.7.2/share/hadoop/common/lib/httpclient-4.2.5.jar"/>
 	<classpathentry kind="lib" path="/home/akshat/Documents/DistributedComputing/hadoop-2.7.2/share/hadoop/common/hadoop-nfs-2.7.2.jar"/>
 	<classpathentry kind="lib" path="/home/akshat/Documents/DistributedComputing/hadoop-2.7.2/share/hadoop/common/hadoop-common-2.7.2.jar"/>
+	<classpathentry kind="lib" path="/home/akshat/Documents/weka/weka.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
