@@ -61,13 +61,13 @@ public class hiercore {
 	
 	public static void main(String[] args) throws Exception
 	{
-		String InputFile = "TrainingData/diabetes.arff";
-		double NeighbourPartPerc = 80.0;
+		String InputFile = "/home/akshat/workspace/HCDistributed/src/main/java/trainingdata/diabetes.arff";
+		double NeighbourPartPerc = 100;
 		Instances data = readDataFile(InputFile);
 		Instances CoreInstances = BuildCoreset(InputFile,NeighbourPartPerc,data);
 		System.out.println(CoreInstances);
 		System.out.println("---------------------------------------------------");
-		HierarchicalClusterer hc = new HierarchicalClusterer();
+		HierarchicalClusterer hc = new HierarchicalClusterer(true);
 		hc.buildClusterer(data);
 		System.out.println("Euclidean Original DataSet: " + hc.graph());
 		System.out.println("---------------------------------------------------");
