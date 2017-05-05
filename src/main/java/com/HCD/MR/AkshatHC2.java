@@ -11,6 +11,7 @@ import java.io.StringReader;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -20,6 +21,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import weka.clusterers.HierarchicalClusterer;
+import weka.core.DistanceFunction;
 import weka.clusterers.SimpleKMeans;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -29,8 +31,11 @@ import weka.core.Instances;
 public class AkshatHC2 {
 
 	public static boolean gotAttributes = false;
+	public static boolean gotCentralizedCentroids = false;
 	public static String attributes = "";
-
+    public static Instances centralizedCentroids;
+    DistanceFunction DF;
+    
 	public static int x;
 
 	public static class TokenizerMapper extends Mapper<Object, Text, Text, Text> {
@@ -53,8 +58,10 @@ public class AkshatHC2 {
 
 		public void reduce(Text key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
 			Configuration conf = context.getConfiguration();
+			FileSystem fs = FileSystem.get(conf);
 			String attrPath = conf.get("Path");
 			String param = conf.get("Partitions");
+			Path centralizedCentroidsFile = new Path(conf.get("CentralizedCentroidsPath"));
 			int partition = Integer.valueOf(param);
 			double pp = Double.parseDouble(conf.get("PartitionPercentage"));
 			int noOfClusters = Integer.parseInt(conf.get("NoOfClusters"));
@@ -66,7 +73,6 @@ public class AkshatHC2 {
 			if (!gotAttributes) {
 				try {
 					Path pt = new Path(attrPath);
-					FileSystem fs = FileSystem.get(conf);
 					BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(pt)));
 					String line;
 					line = br.readLine();
@@ -79,6 +85,31 @@ public class AkshatHC2 {
 				}
 				gotAttributes = true;
 			}
+			
+			if(!gotCentralizedCentroids && fs.exists(centralizedCentroidsFile)){
+				BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(centralizedCentroidsFile)));
+				String ActualCentroid = "";
+				try {
+					StringBuilder sb = new StringBuilder();
+					String line = br.readLine();
+					while (line != null) {
+						if (line.contains("#")) {
+							line = line.substring(line.indexOf("#") + 1);
+							line = line.substring(0, line.indexOf("#"));
+							ActualCentroid = ActualCentroid + line + "\n";
+						}
+						sb.append(line);
+						sb.append(System.lineSeparator());
+						line = br.readLine();
+					}
+				} finally {
+					br.close();
+				}
+				BufferedReader br_actual = new BufferedReader(new StringReader(attributes+ActualCentroid));
+				centralizedCentroids = new Instances(br_actual);
+				gotCentralizedCentroids = true;
+			}
+
 			Iterator<Text> iter = value.iterator();
 			String fullArff = "";
 			while (iter.hasNext()) {
@@ -94,11 +125,15 @@ public class AkshatHC2 {
 			try {
 				HC.buildClusterer(data);
 				actualCentroids = HC.graph();
+				BufferedReader br_actual = new BufferedReader(new StringReader(actualCentroids));
+				Instances actual = new Instances(br_actual);
 				if (getApprox) {
 					Instances CoreInstances = BuildCoreset(pp, data);
 					HC.buildClusterer(CoreInstances);
 					approxCentroids = HC.graph();
 					approxCentroids = approxCentroids.replace('#', '%');
+					BufferedReader br_approx = new BufferedReader(new StringReader(approxCentroids));
+					Instances approx = new Instances(br_approx); 
 				} else {
 					approxCentroids = "Coresets disabled!\n";
 				}
@@ -146,14 +181,16 @@ public class AkshatHC2 {
 		Configuration conf = new Configuration();
 		String trainingPath = args[0];
 		String attributePath = args[1];
-		String outputPath = args[2];
-		String partitions = args[3];
-		String partitionPercentage = args[4];
-		String noOfClusters = args[5];
+		String centralizedCentroidsPath = args[2];
+		String outputPath = args[3];
+		String partitions = args[4];
+		String partitionPercentage = args[5];
+		String noOfClusters = args[6];
 		conf.set("Path", attributePath);
 		conf.set("Partitions", partitions);
 		conf.set("PartitionPercentage", partitionPercentage);
 		conf.set("NoOfClusters", noOfClusters);
+		conf.set("CentralizedCentroidsPath", centralizedCentroidsPath+"/centroids");
 		Job job = Job.getInstance(conf, "AkshatHC2");
 		job.setJobName(AkshatHC2.class.getSimpleName());
 		job.setJarByClass(AkshatHC2.class);
@@ -165,9 +202,16 @@ public class AkshatHC2 {
 
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
+		
 
 		if (job.waitForCompletion(true)) {
-			Path pt = new Path(outputPath + "/part-r-00000");
+			if(Integer.parseInt(partitions) == 1){
+				Path outputfile = new Path(outputPath + "/part-r-00000");
+				Path centralizedCentroidsFile = new Path(centralizedCentroidsPath+"/centroids");
+				FileSystem fs = FileSystem.get(conf);
+				FileUtil.copy(fs, outputfile, fs, centralizedCentroidsFile, false, conf);
+			}
+			/*Path pt = new Path(outputPath + "/part-r-00000");
 			FileSystem fs = FileSystem.get(conf);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(pt)));
 			String ApproxCentroid = "";
@@ -193,12 +237,13 @@ public class AkshatHC2 {
 			} finally {
 				br.close();
 			}
-			/*
+			
 			 * System.out.println("-------APPROX--------");
 			 * System.out.println(ApproxCentroid);
 			 * System.out.println("-------ACTUAL--------");
 			 * System.out.println(ActualCentroid);
-			 */
+			 
+			//K-Means approach to fixed centroids begins here -ALTERNATE APPROACH
 			String attr = "";
 			Path attr_pt = new Path(attributePath);
 			BufferedReader br_attr = new BufferedReader(new InputStreamReader(fs.open(attr_pt)));
@@ -232,7 +277,7 @@ public class AkshatHC2 {
 				System.out.println("-------ACTUAL--------");
 				System.out.println(actualCentroidInstance);
 				System.exit(0);
-			}
+			}*/
 			double endTime = System.currentTimeMillis();
 			System.out.println("Total training time: " + (endTime - startTime) / 1000 + " seconds");
 		} else {

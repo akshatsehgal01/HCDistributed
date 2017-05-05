@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -16,14 +17,16 @@ import weka.core.converters.CSVLoader;
 import weka.clusterers.HierarchicalClusterer;
 import weka.clusterers.SimpleKMeans;
 import weka.core.Attribute;
+import weka.core.DistanceFunction;
+import weka.core.EuclideanDistance;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
 public class hiercore {
-	
+
 	public static Instances readDataFile(String filename) throws IOException {
-		//Hello World
+		// Hello World
 		System.out.println("---------------Reading data file------------------");
 		BufferedReader inputReader = null;
 		try {
@@ -34,53 +37,74 @@ public class hiercore {
 		Instances data = new Instances(inputReader);
 		return data;
 	}
-	
-	public static Instances BuildCoreset(String InputFile, double NeighbourPartPerc,Instances data) throws Exception{
+
+	public static Instances BuildCoreset(String InputFile, double NeighbourPartPerc, Instances data) throws Exception {
 		System.out.println("-------------Building the coresets----------------");
-		int NeighbourHoodPartition = (int) Math.ceil(NeighbourPartPerc/100*data.numInstances());
+		int NeighbourHoodPartition = (int) Math.ceil(NeighbourPartPerc / 100 * data.numInstances());
 		System.out.println(NeighbourHoodPartition);
 		SimpleKMeans kmeans = new SimpleKMeans();
 		kmeans.setSeed(10);
-		//important parameter to set: preserver order, number of cluster.
+		// important parameter to set: preserver order, number of cluster.
 		kmeans.setPreserveInstancesOrder(true);
 		kmeans.setNumClusters(NeighbourHoodPartition);
 		kmeans.buildClusterer(data);
-		// This array returns the cluster number (starting with 0) for each instance
+		// This array returns the cluster number (starting with 0) for each
+		// instance
 		// The array has as many elements as the number of instances
 		int[] assignments = kmeans.getAssignments();
-		int i=0;
+		int i = 0;
 		System.out.println("#" + "    " + "--------------Instances-----------------------");
-		for(int clusterNum : assignments) {
+		for (int clusterNum : assignments) {
 			System.out.println(clusterNum + " => " + data.get(i));
-		    i++;
+			i++;
 		}
 		Instances CoreInstance = kmeans.getClusterCentroids();
 		System.out.println("---------------------------------------------------");
 		return CoreInstance;
 	}
-	
-	public static void main(String[] args) throws Exception
-	{
+
+	public static void main(String[] args) throws Exception {
+		String attr = "@relation pima_diabetes\n@attribute 'preg' real\n@attribute 'plas' real\n@attribute 'pres' real\n@attribute 'skin' real\n@attribute 'insu' real\n@attribute 'mass' real\n@attribute 'pedi' real\n@attribute 'age' real\n@attribute 'class' { tested_negative, tested_positive}\n@data\n";
+		DistanceFunction df = new EuclideanDistance();
+		double dist;
 		String InputFile = "/home/akshat/workspace/HCDistributed/src/main/java/trainingdata/diabetes.arff";
 		double NeighbourPartPerc = 100;
 		Instances data = readDataFile(InputFile);
-		Instances CoreInstances = BuildCoreset(InputFile,NeighbourPartPerc,data);
-		System.out.println(CoreInstances);
-		System.out.println("---------------------------------------------------");
-		HierarchicalClusterer hc = new HierarchicalClusterer(true);
-		hc.buildClusterer(data);
-		System.out.println("Euclidean Original DataSet: " + hc.graph());
-		System.out.println("---------------------------------------------------");
-		hc.buildClusterer(CoreInstances);
-		System.out.println("Euclidean Coresets Dataset: " + hc.graph());
-		System.out.println("---------------------------------------------------");
-		//Manhattan - true
-		//Euclidean - false
-		//--------------------------------------------------------------
-//		HierarchicalClusterer hc = new HierarchicalClusterer(true);
-//		hc.buildClusterer(data);
-//		System.out.println("Manhattan: " + hc.graph());
-		//--------------------------------------------------------------
-		
+		String ch = attr;
+		for (int k = 0; k < 4; k++) {
+			ch = ch + data.get(k)+"\n";
+		}
+		System.out.println(ch);
+		BufferedReader br = new BufferedReader(new StringReader(ch));
+		Instances in = new Instances(br);
+		for (int i = 0; i < 4; i++) {
+			for (int j = i+1; j < 4; j++) {
+				System.out.println(df.distance(in.get(i), in.get(j)));
+			}
+		}
+		HashMap<Instance, Double> hm = new HashMap<Instance, Double>();
+		/*
+		 * Instances CoreInstances =
+		 * BuildCoreset(InputFile,NeighbourPartPerc,data);
+		 * System.out.println(CoreInstances); System.out.println(
+		 * "---------------------------------------------------");
+		 * HierarchicalClusterer hc = new HierarchicalClusterer(true);
+		 * hc.buildClusterer(data);
+		 * System.out.println("Euclidean Original DataSet: " + hc.graph());
+		 * System.out.println(
+		 * "---------------------------------------------------");
+		 * hc.buildClusterer(CoreInstances);
+		 * System.out.println("Euclidean Coresets Dataset: " + hc.graph());
+		 * System.out.println(
+		 * "---------------------------------------------------");
+		 */
+		// Manhattan - true
+		// Euclidean - false
+		// --------------------------------------------------------------
+		// HierarchicalClusterer hc = new HierarchicalClusterer(true);
+		// hc.buildClusterer(data);
+		// System.out.println("Manhattan: " + hc.graph());
+		// --------------------------------------------------------------
+
 	}
 }
