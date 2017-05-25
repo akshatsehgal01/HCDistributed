@@ -1207,7 +1207,7 @@ public class HierarchicalClusterer extends AbstractClusterer implements
 			} else {
 				sNewick = m_clusters[i].toString2(attIndex);
 			}
-			tot = attr + tot;
+			tot = attr +"\n"+ tot;
 			BufferedReader br = new BufferedReader(new StringReader(tot));
 			Instances clusterData = new Instances(br);
 			SimpleKMeans kmeans = new SimpleKMeans();

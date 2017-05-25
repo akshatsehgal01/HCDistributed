@@ -81,7 +81,7 @@ public class AkshatHC2 {
 						line = br.readLine();
 					}
 				} catch (Exception e) {
-					attributes = "exception";
+					attributes = attrPath;
 				}
 				gotAttributes = true;
 			}
@@ -118,22 +118,20 @@ public class AkshatHC2 {
 			fullArff = fullArff.trim();
 			fullArff = attributes + fullArff;
 			BufferedReader br = new BufferedReader(new StringReader(fullArff));
+			fullArff=null;//heap error
 			Instances data = new Instances(br);
+			br=null;//heap error
 			HierarchicalClusterer HC = new HierarchicalClusterer(true, noOfClusters, attributes);
 			String actualCentroids = "";
 			String approxCentroids = "";
 			try {
 				HC.buildClusterer(data);
 				actualCentroids = HC.graph();
-				BufferedReader br_actual = new BufferedReader(new StringReader(actualCentroids));
-				Instances actual = new Instances(br_actual);
 				if (getApprox) {
 					Instances CoreInstances = BuildCoreset(pp, data);
 					HC.buildClusterer(CoreInstances);
 					approxCentroids = HC.graph();
 					approxCentroids = approxCentroids.replace('#', '%');
-					BufferedReader br_approx = new BufferedReader(new StringReader(approxCentroids));
-					Instances approx = new Instances(br_approx); 
 				} else {
 					approxCentroids = "Coresets disabled!\n";
 				}
@@ -142,6 +140,7 @@ public class AkshatHC2 {
 			}
 			String centroids = "actualCentroids:" + actualCentroids + "\n" + "approxCentroids:" + approxCentroids;
 			context.write(key, new Text(centroids));
+			//context.write(key, new Text(fullArff));
 		}
 
 		public static Instances BuildCoreset(double NeighbourPartPerc, Instances data) throws Exception {
@@ -179,6 +178,8 @@ public class AkshatHC2 {
 
 		double startTime = System.currentTimeMillis();
 		Configuration conf = new Configuration();
+		//for google cloud
+		conf.set("fs.default.name", "gs://hcdakshat");
 		String trainingPath = args[0];
 		String attributePath = args[1];
 		String centralizedCentroidsPath = args[2];
