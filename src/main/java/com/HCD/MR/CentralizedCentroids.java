@@ -71,7 +71,7 @@ public class CentralizedCentroids {
 			content = attribute +"\n"+ content;
 			BufferedReader br_actual = new BufferedReader(new StringReader(content));
 			Instances actual = new Instances(br_actual);
-			HierarchicalClusterer HC = new HierarchicalClusterer(true, Integer.parseInt(noOfClusters), attribute);
+			HierarchicalClusterer HC = new HierarchicalClusterer();
 			HC.buildClusterer(actual);
 			BufferedWriter br = new BufferedWriter(new OutputStreamWriter(fs.create(centralizedCentroidsFile, true)));
 			br.write(HC.graph());
